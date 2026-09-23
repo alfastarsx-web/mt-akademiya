@@ -54,7 +54,7 @@ button:disabled{opacity:.6;cursor:progress}
 const f=document.getElementById('f'),pw=document.getElementById('pw'),btn=document.getElementById('btn'),msg=document.getElementById('msg');
 const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 let blob=null;
-async function load(){ if(!blob){ const r=await fetch('data.json',{cache:'force-cache'}); blob=await r.json(); } return blob; }
+async function load(){ if(!blob){ const r=await fetch('data.json',{cache:'no-cache'}); blob=await r.json(); } return blob; }
 async function open_(pass){
   const d=await load();
   const enc=new TextEncoder();
