@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mentor yo’li</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Onest:wght@400;500;600&display=swap">
+<style>
+:root{--ink:#04124A;--brand:#0A47DB;--orange:#FF9A1F;--mute:#AFC0F0;
+--display:"Lexend","Avenir Next",system-ui,sans-serif;--body:"Onest",system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:linear-gradient(140deg,#0B34B8 0%,#07227E 48%,#04124A 100%);color:#fff;font-family:var(--body);display:grid;place-items:center;padding:24px}
+.box{width:min(460px,100%);text-align:center}
+svg.logo{display:block;margin:0 auto 40px}
+h1{font-family:var(--display);font-weight:700;font-size:38px;line-height:1.1;letter-spacing:-.02em;margin:0 0 14px;text-wrap:balance}
+p.sub{font-size:18px;line-height:1.5;color:#D5DEFA;margin:0 0 34px}
+form{display:flex;flex-direction:column;gap:14px}
+label{font-family:var(--display);font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);text-align:left}
+input{font:500 20px var(--body);padding:18px 20px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;border-radius:0;width:100%}
+input::placeholder{color:rgba(255,255,255,.45)}
+input:focus{outline:none;border-color:var(--orange)}
+button{font:600 20px var(--display);padding:18px;background:#fff;color:var(--brand);border:0;cursor:pointer}
+button:hover:not(:disabled){background:var(--orange);color:#fff}
+button:disabled{opacity:.6;cursor:progress}
+.msg{min-height:24px;font-size:17px;color:#FF9A9A;margin-top:6px}
+.foot{margin-top:40px;font-size:15px;color:var(--mute);line-height:1.5}
+</style>
+</head>
+<body>
+<div class="box">
+  <svg class="logo" width="190" height="52" viewBox="0 0 2000 534" role="img" aria-label="MyTeacher">
+    <polygon fill="#FF3B3B" points="131,0 233,0 284,89 233,178 131,178 80,89"/>
+    <polygon fill="#FFFFFF" points="340,55 493,55 569,188 493,321 340,321 264,188"/>
+    <polygon fill="#FFFFFF" points="76,213 229,213 305,346 229,479 76,479 0,346"/>
+    <polygon fill="#FFFFFF" points="336,357 436,357 487,445 436,534 336,534 285,445"/>
+    <text x="640" y="226" fill="#fff" font-family="Lexend, sans-serif" font-weight="500" font-size="300">My</text>
+    <text x="630" y="530" fill="#fff" font-family="Lexend, sans-serif" font-weight="500" font-size="300" textLength="1360" lengthAdjust="spacingAndGlyphs">Teacher</text>
+  </svg>
+  <h1>Mentor yo’li</h1>
+  <p class="sub">Ranklar, ball va mukofotlar xaritasi. Ochish uchun parolni kiriting.</p>
+  <form id="f">
+    <label for="pw">Parol</label>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="parolni kiriting" required>
+    <button id="btn" type="submit">Ochish</button>
+    <p class="msg" id="msg" role="status"></p>
+  </form>
+  <p class="foot">Parolni MyTeacher jamoasidan olasiz.<br>Havolani parolsiz ulashish foydasiz — sahifa shifrlangan.</p>
+</div>
+<script>
+const f=document.getElementById('f'),pw=document.getElementById('pw'),btn=document.getElementById('btn'),msg=document.getElementById('msg');
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+let blob=null;
+async function load(){ if(!blob){ const r=await fetch('data.json',{cache:'force-cache'}); blob=await r.json(); } return blob; }
+async function open_(pass){
+  const d=await load();
+  const enc=new TextEncoder();
+  const base=await crypto.subtle.importKey('raw',enc.encode(pass),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(d.s),iterations:310000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
+  const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(d.i)},key,b64(d.d));
+  return new TextDecoder().decode(plain);
+}
+f.addEventListener('submit',async e=>{
+  e.preventDefault();
+  btn.disabled=true; msg.style.color='#D5DEFA'; msg.textContent='Ochilmoqda…';
+  try{
+    const html=await open_(pw.value);
+    try{ localStorage.setItem('mt_pw_yol',pw.value); }catch(_){}
+    document.open(); document.write(html); document.close();
+  }catch(err){
+    msg.style.color='#FF9A9A'; msg.textContent='Parol notog‘ri. Qaytadan urinib ko‘ring.';
+    pw.select(); btn.disabled=false;
+  }
+});
+(async()=>{ let saved=null; try{ saved=localStorage.getItem('mt_pw_yol'); }catch(_){}
+  if(saved){ try{ const html=await open_(saved); document.open(); document.write(html); document.close(); }catch(_){ try{localStorage.removeItem('mt_pw_yol');}catch(_){} } }
+})();
+</script>
+</body>
+</html>
